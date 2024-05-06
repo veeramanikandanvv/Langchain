@@ -1,0 +1,14 @@
+langchain~=0.1.17
+chromadb
+sentence-transformers
+bitsandbytes
+git+https://github.com/huggingface/peft.git
+git+https://github.com/huggingface/accelerate.git
+einops
+safetensors
+xformers
+ctransformers[cuda]
+huggingface_hub
+transformers~=4.40.1
+torch~=2.3.0
+optimum~=1.19.1
