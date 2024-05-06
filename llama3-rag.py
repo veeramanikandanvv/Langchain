@@ -11,7 +11,7 @@ from transformers import pipeline
 from langchain.llms import HuggingFacePipeline
 from huggingface_hub import login
 
-hf_access_token_write_permission = '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'
+hf_access_token_write_permission = '<<access_token>>'
 hf_cache_dir = "D:/LLM/meta"
 #model_id = 'meta-llama/Meta-Llama-3-8B-Instruct'
 model_id = 'gaurav021201/Meta-Llama-3-8B-GPTQ'
