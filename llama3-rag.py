@@ -1,3 +1,4 @@
+import chromadb
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings.sentence_transformer import SentenceTransformerEmbeddings
@@ -11,15 +12,34 @@ from transformers import pipeline
 from langchain.llms import HuggingFacePipeline
 from huggingface_hub import login
 
-hf_access_token_write_permission = '<<access_token>>'
+hf_access_token_write_permission = '<<hf_access_token>>'
 hf_cache_dir = "D:/LLM/meta"
-#model_id = 'meta-llama/Meta-Llama-3-8B-Instruct'
-model_id = 'gaurav021201/Meta-Llama-3-8B-GPTQ'
+model_id = 'meta-llama/Meta-Llama-3-8B-Instruct'
+#model_id = 'gaurav021201/Meta-Llama-3-8B-GPTQ'
 login(token=hf_access_token_write_permission,
       add_to_git_credential=False,
       write_permission=True)
+
+loader = PyPDFLoader("<<your pdf>>")
+documents = loader.load()
+print(documents[0].page_content)
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+texts = text_splitter.split_documents(documents)
+embedding_function = SentenceTransformerEmbeddings(model_name="BAAI/bge-small-en-v1.5")
+persistent_client = chromadb.PersistentClient()
+collection = persistent_client.get_or_create_collection("sample_collection")
+collection.add(ids=str("net-bill-may-veera"),
+               documents=documents[0].page_content)
+vectorstore = Chroma(client=persistent_client,
+                     collection_name="sample_collection",
+                     embedding_function=embedding_function)
+#vectorstore.add_documents(texts)
+retriever = vectorstore.as_retriever(k=7)
+print(texts)
+
+
 #loading a Quantized Model
-quantization_config = GPTQConfig(bits=4,
+"""quantization_config = GPTQConfig(bits=4,
                                  disable_exllama=True,
                                  use_cuda_fp16=False)
 model = AutoModelForCausalLM.from_pretrained(model_id,
@@ -33,9 +53,9 @@ text_generation_pipeline = pipeline("text-generation",
                                     torch_dtype=torch.float16,
                                     max_length=3000,
                                     device_map="auto")
-llm = HuggingFacePipeline(pipeline=text_generation_pipeline)
+llm = HuggingFacePipeline(pipeline=text_generation_pipeline)"""
 #loading llama3
-"""model_config = AutoConfig.from_pretrained(model_id,
+model_config = AutoConfig.from_pretrained(model_id,
                                           trust_remote_code=True,
                                           max_new_tokens=1024,
                                           cache_dir=hf_cache_dir)
@@ -52,7 +72,7 @@ text_generation_pipeline = pipeline("text-generation",
                                     torch_dtype=torch.float16,
                                     max_length=3000,
                                     device_map="auto")
-llm = HuggingFacePipeline(pipeline=text_generation_pipeline)"""
+llm = HuggingFacePipeline(pipeline=text_generation_pipeline)
 """prompt = <|begin_of_text|>
             <|start_header_id|>
               user
@@ -65,15 +85,6 @@ llm = HuggingFacePipeline(pipeline=text_generation_pipeline)"""
          
 out = llm.invoke(prompt)
 print(out)"""
-loader = PyPDFLoader("<<pdf file>>")
-documents = loader.load()
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
-texts = text_splitter.split_documents(documents)
-embedding_function = SentenceTransformerEmbeddings(model_name="BAAI/bge-small-en-v1.5")
-vectorstore = Chroma(collection_name="sample_collection", embedding_function=embedding_function)
-vectorstore.add_documents(texts)
-retriever = vectorstore.as_retriever(k=2)
-print(texts)
 
 
 class Pipeline:
